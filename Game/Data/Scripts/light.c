@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
+#include "light.h"
 
-
-void test(uint16_t resolution, uint8_t* data, float* force, float* torque)
+DLLSPEC void test(uint16_t resolution, uint8_t* data, float* force, float* torque)
 {
     uint16_t res = resolution - 1;
     // Iterate through each pixel
