@@ -12,10 +12,13 @@ VECTYPE = ctypes.c_float * 3
 
 SHOW_DEBUG_PLANE = False
 
-if platform.system() == 'unix':
+if platform.system() == 'Linux':
     _accel_path = os.path.join(os.path.split(__file__)[0], "light.so")
+    print("Detected Linux: ", end='')
 else:
     _accel_path = os.path.join(os.path.split(__file__)[0], "light.dll")
+    print("Detected Windows: ", end='')
+print("Loading C functions from {}".format(_accel_path))
 ACCELERATOR = ctypes.cdll.LoadLibrary(_accel_path)
 ACCELERATOR.test.restype = ctypes.c_float
 
