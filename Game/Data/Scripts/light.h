@@ -1,0 +1,1 @@
+void test(uint16_t resolution, uint8_t* data, float* force, float* torque);
