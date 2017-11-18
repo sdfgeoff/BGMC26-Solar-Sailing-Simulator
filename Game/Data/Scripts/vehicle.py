@@ -4,6 +4,7 @@ import mathutils
 import ctypes
 import os
 import math
+import platform
 
 RESOLUTION = 128
 NORMAL_TYPE = ctypes.c_ubyte * (RESOLUTION * RESOLUTION * 4)
@@ -11,8 +12,10 @@ VECTYPE = ctypes.c_float * 3
 
 SHOW_DEBUG_PLANE = False
 
-
-_accel_path = os.path.join(os.path.split(__file__)[0], "light.so")
+if platform.system() == 'unix':
+    _accel_path = os.path.join(os.path.split(__file__)[0], "light.so")
+else:
+    _accel_path = os.path.join(os.path.split(__file__)[0], "light.dll")
 ACCELERATOR = ctypes.cdll.LoadLibrary(_accel_path)
 ACCELERATOR.test.restype = ctypes.c_float
 
