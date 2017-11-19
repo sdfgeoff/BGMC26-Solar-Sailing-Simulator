@@ -33,6 +33,7 @@ class Vehicle:
         self.obj = scene.addObject('SUNJAMMER')
         self.obj.worldTransform = transform
         self.diameter = 10  # BU image size to catch the whole craft
+        self.render_debug_plane = SHOW_DEBUG_PLANE
 
         self.tex = RenderCamera(self.obj.children['LIGHTCAMERA'], self.obj.children['DEBUGPLANE'], RESOLUTION)
         self.tex.obj.visible = SHOW_DEBUG_PLANE
@@ -62,7 +63,10 @@ class Vehicle:
         for funct in self.on_player_move:
             funct(self.obj, force, torque, light_vector)
         
-        self.sail.localOrientation = [self.tilt, 0, 0]
+        self.sail.localOrientation = [self.tilt/2, 0, 0]
+
+        if self.obj.worldAngularVelocity.length > 3.0:
+            self.obj.worldAngularVelocity *= 0.9
 
         # Update amatures
         for obj in self.obj.childrenRecursive:
@@ -94,32 +98,40 @@ class Vehicle:
         torque = light_to_world * mathutils.Vector(f_torque)
 
         force = force / (dist ** 2) * 1000
-        torque = torque / (dist ** 2) * 1000
+        torque = torque / (dist ** 2) * 600
 
         light_vector.length = 1 / (light_vector.length ** 2) * 1000
+
 
         return force, torque, light_vector
 
     def do_light_render(self):
+        # HIDE EVERTHING NOT NEEDED
         made_invisible = list()
         for obj in self.obj.scene.objects:
             if obj.visible and 'HIDE_FROM_LIGHT' in obj:
                 obj.visible = False
                 made_invisible.append(obj)
-        
-        for obj in self.obj.childrenRecursive:
+
+
+        all_objs = list(self.obj.childrenRecursive) + [self.obj]
+        for obj in all_objs:
             if obj.visible and 'HIDE_FROM_LIGHT' not in obj:
                 obj.color[0] = True
                 obj.visible = True
 
-        if SHOW_DEBUG_PLANE:
+        # DO RENDERING
+        if self.render_debug_plane:
             self.tex.update()
+
+        if SHOW_DEBUG_PLANE:
             self.tex.obj.visible = True
         else:
             self.tex.obj.visible = False
         self.tex.refresh_buffer()
 
-        for obj in self.obj.childrenRecursive:
+        # SHOW EVERYTHING AGAIN
+        for obj in all_objs:
             obj.color[0] = False
 
         for obj in made_invisible:
@@ -128,7 +140,10 @@ class Vehicle:
         return NORMAL_TYPE.from_buffer(self.tex.data)
             
 
-        
+
+class Powerup:
+    def __init__(self, scene, position):
+        self.obj = scene.addObject('OXYGEN')
         
 
 
