@@ -34,12 +34,13 @@ PICKUP_TEXT = '''You have collected {} comets'''
 
 SUN_DEATH_TEXT = '''\
 The sun may be your source of power, but that doesn't mean you should
-get so close.
+get so close. You collected {} comets
 
 Press R to restart'''
 
 DISTANCE_DEATH_TEXT = '''\
 You entered interstellar space and were never seen again.
+You collected {} comets
 
 Press R to restart'''
 
@@ -77,6 +78,8 @@ class Simulation:
         self.tilt = 0
         self.death = False
 
+        self.pickup_count = 0
+
         self.powerups = list()
         for i in range(POWERUP_COUNT):
             if i < POWERUP_COUNT/2:
@@ -84,8 +87,19 @@ class Simulation:
             else:
                 self.add_powerup(60)
 
+
+    def on_comet_pickup(self):
+        self.pickup_count += 1
+        self.hud.text.text = PICKUP_TEXT.format(self.pickup_count)
+        self.hud.text.color = [1, 1, 1, 1]
+        self.sound.play_pickup_sound()
+        self.add_powerup(60)
+
+
     def add_powerup(self, max_dist):
-        self.powerups.append(Powerup(self.sun, max_dist))
+        powerup = Powerup(self.sun, max_dist)
+        powerup.on_pickup.append(self.on_comet_pickup)
+        self.powerups.append(powerup)
         self.added_powerup_time = time.time()
 
 
@@ -122,13 +136,13 @@ class Simulation:
 
         
         if dist_from_sun < 4.0:
-            self.death = SUN_DEATH_TEXT
+            self.death = SUN_DEATH_TEXT.format(self.pickup_count)
             if dist_from_sun < 1.0:
                 self.vehicle.obj.worldLinearVelocity = [0, 0, 0]
                 self.vehicle.obj.suspendDynamics(True)
                 self.sun.parent.suspendDynamics(True)
-        elif dist_from_sun > 240:
-            self.death = DISTANCE_DEATH_TEXT
+        elif dist_from_sun > 160:
+            self.death = DISTANCE_DEATH_TEXT.format(self.pickup_count)
 
         if self.death is not False:
             # Player Died
@@ -150,7 +164,6 @@ class Simulation:
             powerup.update(self.vehicle)
             if powerup.remove:
                 self.powerups.remove(powerup)
-                self.add_powerup(60)
 
 
         
@@ -191,8 +204,6 @@ class Powerup:
         if dist < 3 and not self.picked_up:
             for funct in self.on_pickup:
                 funct()
-            sound = aud.Factory(os.path.join(ROOT_PATH, 'Data/Audio/pickup.wav'))
-            sound_handle = aud.device().play(sound)
             self.picked_up = True
             
 
@@ -258,6 +269,10 @@ class Sound:
 
     def set_sun_volume(self, sun_volume):
         self.sun_handle.volume = sun_volume
+
+    def play_pickup_sound(self):
+        sound = aud.Factory(os.path.join(ROOT_PATH, 'Data/Audio/pickup.wav'))
+        sound_handle = aud.device().play(sound)
         
 
 
