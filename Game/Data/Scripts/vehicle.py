@@ -65,7 +65,6 @@ class Vehicle:
         radius.z = 0
         torque_from_offset = radius.cross(force)
         torque.z += torque_from_offset.z * 0.3
-        print(radius, force, torque_from_offset)
         self.obj.applyForce(force, False)
         self.obj.applyTorque(torque, False)
 
@@ -154,7 +153,11 @@ class RenderCamera:
         self.obj = obj
         self.tex = bge.texture.Texture(obj, 0)
         self.image = bge.texture.ImageRender(cam.scene, cam)
-        self.image.background = [127, 127, 127, 127]
+        if hasattr(bge.app, 'upbge_version'):
+            self.image.horizon = [0.5 ** 2.2] * 4
+            self.image.zenith = [0.5 ** 2.2] * 4
+        else:
+            self.image.background = [127] * 4
         self.image.capsize = [res, res]
         self.tex.source = self.image
 
