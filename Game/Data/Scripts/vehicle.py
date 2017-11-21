@@ -15,6 +15,9 @@ SHOW_DEBUG_PLANE = False
 if platform.system() == 'Linux':
     _accel_path = os.path.join(os.path.split(__file__)[0], "light.so")
     print("Detected Linux: ", end='')
+elif platform.system() == 'Darwin':
+    _accel_path = os.path.join(os.path.split(__file__)[0], "light.so")
+    print("Detected Mac OSX: ", end='')
 else:
     _accel_path = os.path.join(os.path.split(__file__)[0], "light.dll")
     print("Detected Windows: ", end='')
@@ -57,6 +60,12 @@ class Vehicle:
 
         force *= 0.5
         torque *= 5
+
+        radius = self.sail.worldPosition - self.obj.worldPosition
+        radius.z = 0
+        torque_from_offset = radius.cross(force)
+        torque.z += torque_from_offset.z * 0.3
+        print(radius, force, torque_from_offset)
         self.obj.applyForce(force, False)
         self.obj.applyTorque(torque, False)
 
@@ -102,7 +111,6 @@ class Vehicle:
 
         light_vector.length = 1 / (light_vector.length ** 2) * 1000
 
-
         return force, torque, light_vector
 
     def do_light_render(self):
@@ -138,13 +146,6 @@ class Vehicle:
             obj.visible = True
 
         return NORMAL_TYPE.from_buffer(self.tex.data)
-            
-
-
-class Powerup:
-    def __init__(self, scene, position):
-        self.obj = scene.addObject('OXYGEN')
-        
 
 
 class RenderCamera:
